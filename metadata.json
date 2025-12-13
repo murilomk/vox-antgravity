@@ -1,0 +1,9 @@
+{
+  "name": "VoxNet",
+  "description": "A comprehensive social platform unifying the best features of feeds, stories, chats, and events into a single seamless experience.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

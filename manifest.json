@@ -1,0 +1,23 @@
+
+{
+  "short_name": "VoxNet",
+  "name": "VoxNet",
+  "description": "A comprehensive social platform unifying feeds, stories, chats, and events.",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://via.placeholder.com/512",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "orientation": "portrait"
+}
