@@ -114,7 +114,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         initSession();
 
+        // Safeguard: Force loading to false after 8 seconds to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            setIsLoading(false);
+        }, 8000);
+
         const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+            clearTimeout(timeoutId); // Clear timeout if auth state changes
             if (session?.user) {
                 const profile = await fetchProfile(session.user.id, session.user.email);
                 if (profile) setUser(profile);
@@ -125,6 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         return () => {
+            clearTimeout(timeoutId);
             authListener.subscription.unsubscribe();
         };
     }, []);
