@@ -2,9 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Post, Reel, ViewState } from '../types';
 import { CURRENT_USER } from '../constants';
-import { 
-    Settings, Grid, Bookmark, Users, Film, Edit3, MapPin, 
-    Link as LinkIcon, X, Check, Camera, Heart, MessageCircle, 
+import {
+    Settings, Grid, Bookmark, Users, Film, Edit3, MapPin,
+    Link as LinkIcon, X, Check, Camera, Heart, MessageCircle,
     Send, Play, Pause, Music, QrCode, Share2, MoreHorizontal,
     Shield, Star, Zap, BarChart3, Lock, Trophy, Calendar, Archive,
     ShoppingBag, ChevronRight, Eye, TrendingUp, DollarSign, UserPlus, UserMinus, Search, Copy, CheckCircle, Smartphone, Facebook, Twitter, Instagram, Linkedin, Briefcase, AtSign, Globe, Palette, Loader2, Upload, Trash2, SmartphoneCharging, Layout, Image as ImageIcon
@@ -30,7 +30,7 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
     const [previewBanner, setPreviewBanner] = useState<string | null>(null);
     const [avatarFile, setAvatarFile] = useState<File | null>(null);
     const [bannerFile, setBannerFile] = useState<File | null>(null);
-    
+
     // File Inputs Refs
     const avatarInputRef = useRef<HTMLInputElement>(null);
     const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,7 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
     const uploadImage = async (file: File, bucket: 'avatars' | 'banners'): Promise<string | null> => {
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-        
+
         try {
             const { error: uploadError } = await supabase.storage
                 .from(bucket)
@@ -124,8 +124,8 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
             <div className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-black sticky top-0 z-10">
                 <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white transition font-medium">Cancel</button>
                 <h3 className="font-bold text-lg dark:text-white">Edit Profile</h3>
-                <button 
-                    onClick={handleSave} 
+                <button
+                    onClick={handleSave}
                     disabled={isSaving}
                     className="text-primary-600 font-bold disabled:opacity-50 flex items-center"
                 >
@@ -138,7 +138,7 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
                 <div className="space-y-4">
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase mb-2 block">Cover Image</label>
-                        <div 
+                        <div
                             className="relative h-32 rounded-xl overflow-hidden bg-gray-200 dark:bg-neutral-800 border-2 border-dashed border-gray-300 dark:border-neutral-700 cursor-pointer group"
                             onClick={() => bannerInputRef.current?.click()}
                         >
@@ -151,7 +151,7 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
                     </div>
 
                     <div className="flex justify-center">
-                        <div 
+                        <div
                             className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white dark:border-black shadow-lg cursor-pointer group"
                             onClick={() => avatarInputRef.current?.click()}
                         >
@@ -167,10 +167,10 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
                 <div className="space-y-4 bg-white dark:bg-neutral-900 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Name</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={formData.name}
-                            onChange={e => setFormData({...formData, name: e.target.value})}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
                             className="w-full bg-gray-50 dark:bg-black/50 border border-gray-100 dark:border-neutral-800 rounded-xl px-4 py-3 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 transition mt-1"
                         />
                     </div>
@@ -178,19 +178,19 @@ const EditProfileModal = ({ user, onClose, onSave }: { user: User, onClose: () =
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Username</label>
                         <div className="relative mt-1">
                             <AtSign className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={formData.handle.replace('@', '')}
-                                onChange={e => setFormData({...formData, handle: '@' + e.target.value})}
+                                onChange={e => setFormData({ ...formData, handle: '@' + e.target.value })}
                                 className="w-full bg-gray-50 dark:bg-black/50 border border-gray-100 dark:border-neutral-800 rounded-xl pl-9 pr-4 py-3 dark:text-white outline-none focus:ring-2 focus:ring-primary-500"
                             />
                         </div>
                     </div>
                     <div>
                         <label className="text-xs font-bold text-gray-500 uppercase ml-1">Bio</label>
-                        <textarea 
+                        <textarea
                             value={formData.bio}
-                            onChange={e => setFormData({...formData, bio: e.target.value})}
+                            onChange={e => setFormData({ ...formData, bio: e.target.value })}
                             className="w-full bg-gray-50 dark:bg-black/50 border border-gray-100 dark:border-neutral-800 rounded-xl px-4 py-3 dark:text-white outline-none focus:ring-2 focus:ring-primary-500 h-24 resize-none mt-1"
                         />
                     </div>
@@ -228,7 +228,7 @@ const ProfileShareSheet = ({ user, onClose, onNavigate }: { user: User, onClose:
         <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
             <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-t-3xl shadow-2xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
                 <div className="w-12 h-1 bg-gray-300 dark:bg-neutral-700 rounded-full mx-auto mb-6" />
-                
+
                 <div className="flex flex-col items-center mb-8">
                     <div className="p-1.5 bg-gradient-to-tr from-primary-500 to-secondary-500 rounded-2xl mb-4 shadow-xl" style={{ backgroundImage: `linear-gradient(to top right, ${user.themeColor || '#8b5cf6'}, #d946ef)` }}>
                         <div className="bg-white rounded-xl overflow-hidden">
@@ -241,14 +241,14 @@ const ProfileShareSheet = ({ user, onClose, onNavigate }: { user: User, onClose:
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
-                    <button 
+                    <button
                         onClick={handleCopy}
                         className={`flex items-center justify-center space-x-2 py-3 rounded-xl font-bold transition ${copied ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-white'}`}
                     >
                         {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                         <span>{copied ? 'Copied!' : 'Copy Link'}</span>
                     </button>
-                    <button 
+                    <button
                         onClick={handleSendDM}
                         className="flex items-center justify-center space-x-2 py-3 rounded-xl font-bold bg-primary-600 text-white shadow-lg hover:bg-primary-700 transition"
                         style={{ backgroundColor: user.themeColor || '#8b5cf6' }}
@@ -283,7 +283,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
     const fetchUserData = async () => {
         setIsLoading(true);
         const targetUser = propUser || authUser;
-        
+
         if (!targetUser) {
             setIsLoading(false);
             return;
@@ -316,7 +316,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
 
             // 2. Fetch Posts OR Saved Posts depending on tab
             let postsData: any[] = [];
-            
+
             try {
                 if (activeTab === 'posts') {
                     const { data, error } = await supabase
@@ -332,7 +332,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                         .select('post_id, posts(*)')
                         .eq('user_id', targetUser.id)
                         .order('created_at', { ascending: false });
-                    
+
                     if (data) {
                         postsData = data.map((item: any) => item.posts).filter((p: any) => p !== null);
                     }
@@ -342,8 +342,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                     // Need to check saved status for each post if we are owner
                     let savedIds: string[] = [];
                     if (isOwner) {
-                         const { data: saves } = await supabase.from('saved_posts').select('post_id').eq('user_id', authUser.id);
-                         if(saves) savedIds = saves.map(s => s.post_id);
+                        const { data: saves } = await supabase.from('saved_posts').select('post_id').eq('user_id', authUser.id);
+                        if (saves) savedIds = saves.map(s => s.post_id);
                     }
 
                     finalPosts = postsData.map((p: any) => ({
@@ -372,7 +372,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                     .from('follows')
                     .select('*', { count: 'exact', head: true })
                     .eq('follower_id', targetUser.id);
-                
+
                 finalStats = {
                     followers: followersCount || 0,
                     following: followingCount || 0
@@ -405,13 +405,20 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
 
     useEffect(() => {
         fetchUserData();
+
+        // Safeguard: Force loading to false after 10 seconds to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+            setIsLoading(false);
+        }, 10000);
+
+        return () => clearTimeout(timeoutId);
     }, [propUser, authUser, activeTab]);
 
     // --- ACTIONS ---
 
     const handleUpdateUser = async (updatedUser: User) => {
         if (!authUser) return;
-        
+
         try {
             const { error } = await supabase
                 .from('profiles')
@@ -445,11 +452,11 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
         // Optimistic UI
         const prevFollowing = isFollowing;
         const prevStats = { ...stats };
-        
+
         setIsFollowing(!isFollowing);
-        setStats(prev => ({ 
-            ...prev, 
-            followers: isFollowing ? prev.followers - 1 : prev.followers + 1 
+        setStats(prev => ({
+            ...prev,
+            followers: isFollowing ? prev.followers - 1 : prev.followers + 1
         }));
 
         try {
@@ -492,14 +499,14 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
 
     return (
         <div className="h-full w-full overflow-y-auto bg-white dark:bg-black pb-20 relative font-sans">
-            
+
             {/* --- MODALS --- */}
             {activeModal === 'edit_profile' && <EditProfileModal user={user} onClose={() => setActiveModal('none')} onSave={handleUpdateUser} />}
             {activeModal === 'share_profile' && <ProfileShareSheet user={user} onClose={() => setActiveModal('none')} onNavigate={onNavigate} />}
-            {viewingPost && <PostViewer post={viewingPost} onClose={() => setViewingPost(null)} onUserClick={() => {}} />}
-            
+            {viewingPost && <PostViewer post={viewingPost} onClose={() => setViewingPost(null)} onUserClick={() => { }} />}
+
             {(activeModal === 'followers' || activeModal === 'following') && (
-                <UserListModal 
+                <UserListModal
                     type={activeModal === 'followers' ? 'Followers' : 'Following'}
                     onClose={() => setActiveModal('none')}
                     onUserClick={(u) => { setActiveModal('none'); /* Navigate logic */ }}
@@ -508,16 +515,16 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
 
             {/* --- COVER IMAGE --- */}
             <div className="relative h-48 md:h-64 w-full overflow-hidden group">
-                <img 
-                    src={user.coverUrl || "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&w=1600&q=80"} 
+                <img
+                    src={user.coverUrl || "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&w=1600&q=80"}
                     className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                
+
                 {/* Top Action Bar */}
                 <div className="absolute top-4 right-4 flex space-x-2 z-10">
-                    <button 
-                        onClick={handleSettingsClick} 
+                    <button
+                        onClick={handleSettingsClick}
                         className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-white hover:text-black transition"
                     >
                         {isOwner ? <Settings className="w-5 h-5" /> : <MoreHorizontal className="w-5 h-5" />}
@@ -527,7 +534,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
 
             {/* --- PROFILE HEADER --- */}
             <div className="px-4 relative -mt-16">
-                
+
                 {/* Avatar & Quick Actions Row */}
                 <div className="flex items-end justify-between mb-4">
                     <div className="relative">
@@ -535,8 +542,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                             <img src={user.avatar || 'https://via.placeholder.com/150'} className="w-full h-full object-cover rounded-full" />
                         </div>
                         {isOwner && (
-                            <button 
-                                onClick={() => setActiveModal('edit_profile')} 
+                            <button
+                                onClick={() => setActiveModal('edit_profile')}
                                 className="absolute bottom-2 right-2 bg-primary-500 text-white p-1.5 rounded-full shadow-md hover:bg-primary-600 transition"
                             >
                                 <Camera className="w-4 h-4" />
@@ -548,8 +555,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                     <div className="flex space-x-2 mb-2">
                         {isOwner ? (
                             <>
-                                <button 
-                                    onClick={() => setActiveModal('edit_profile')} 
+                                <button
+                                    onClick={() => setActiveModal('edit_profile')}
                                     className="px-4 py-2 bg-white dark:bg-white/10 text-black dark:text-white rounded-xl font-bold text-sm hover:bg-gray-100 transition border border-gray-200 dark:border-transparent shadow-sm"
                                 >
                                     Edit Profile
@@ -560,7 +567,7 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                             </>
                         ) : (
                             <>
-                                <button 
+                                <button
                                     onClick={handleFollowToggle}
                                     className={`px-6 py-2 rounded-xl font-bold text-sm shadow-lg transition ${isFollowing ? 'bg-gray-200 text-gray-900' : 'text-white'}`}
                                     style={!isFollowing ? bgThemeStyle : {}}
@@ -584,11 +591,11 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                         </div>
                         <p className="text-gray-500 font-medium">{user.handle}</p>
                     </div>
-                    
+
                     <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed mb-4 max-w-md">
                         {user.bio || "No bio yet."}
                     </p>
-                    
+
                     <div className="flex flex-wrap gap-3">
                         {user.location && (
                             <div className="flex items-center text-xs text-gray-500 font-medium">
@@ -603,14 +610,14 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                             <div className="text-xl font-black dark:text-white">{activeTab === 'saved' ? posts.length : posts.length}</div>
                             <div className="text-[10px] text-gray-500 uppercase font-bold">Posts</div>
                         </div>
-                        <div 
+                        <div
                             className="text-center cursor-pointer hover:opacity-70 transition"
                             onClick={() => setActiveModal('followers')}
                         >
                             <div className="text-xl font-black dark:text-white">{stats.followers}</div>
                             <div className="text-[10px] text-gray-500 uppercase font-bold">Followers</div>
                         </div>
-                        <div 
+                        <div
                             className="text-center cursor-pointer hover:opacity-70 transition"
                             onClick={() => setActiveModal('following')}
                         >
@@ -649,8 +656,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                     posts.length > 0 ? (
                         <div className="grid grid-cols-3 gap-0.5 md:gap-1">
                             {posts.map(post => (
-                                <div 
-                                    key={post.id} 
+                                <div
+                                    key={post.id}
                                     onClick={() => setViewingPost(post)}
                                     className="relative aspect-square bg-gray-100 dark:bg-neutral-900 cursor-pointer group overflow-hidden"
                                 >
@@ -671,8 +678,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
                     posts.length > 0 ? (
                         <div className="grid grid-cols-3 gap-0.5 md:gap-1">
                             {posts.map(post => (
-                                <div 
-                                    key={post.id} 
+                                <div
+                                    key={post.id}
                                     onClick={() => setViewingPost(post)}
                                     className="relative aspect-square bg-gray-100 dark:bg-neutral-900 cursor-pointer group overflow-hidden"
                                 >
