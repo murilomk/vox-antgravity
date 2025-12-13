@@ -112,27 +112,65 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     useEffect(() => {
-        initSession();
+        let isMounted = true; // Prevent state updates after unmount
+        let authUnsubscribed = false;
 
-        // Safeguard: Force loading to false after 8 seconds to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-            setIsLoading(false);
-        }, 8000);
+        const initAndListen = async () => {
+            try {
+                // 1. Check initial session
+                const { data: { session } } = await supabase.auth.getSession();
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-            clearTimeout(timeoutId); // Clear timeout if auth state changes
-            if (session?.user) {
-                const profile = await fetchProfile(session.user.id, session.user.email);
-                if (profile) setUser(profile);
-            } else {
-                setUser(null);
+                if (!isMounted) return;
+
+                if (session?.user) {
+                    const profile = await fetchProfile(session.user.id, session.user.email);
+                    if (isMounted && profile) {
+                        setUser(profile);
+                    }
+                }
+            } catch (e) {
+                console.error("Session check failed", e);
+            } finally {
+                // CRITICAL: Always set loading to false after initial check
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
-            setIsLoading(false);
-        });
+
+            // 2. Set up auth state listener (only fires on auth changes, not initial load)
+            const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+                if (authUnsubscribed || !isMounted) return;
+
+                console.log('Auth state changed:', event);
+
+                if (session?.user) {
+                    const profile = await fetchProfile(session.user.id, session.user.email);
+                    if (isMounted && profile) {
+                        setUser(profile);
+                    }
+                } else {
+                    if (isMounted) {
+                        setUser(null);
+                    }
+                }
+
+                // Loading only on initial, not on every auth change
+                if (isMounted && event === 'SIGNED_IN') {
+                    setIsLoading(false);
+                }
+            });
+
+            return authListener;
+        };
+
+        const listenerPromise = initAndListen();
 
         return () => {
-            clearTimeout(timeoutId);
-            authListener.subscription.unsubscribe();
+            isMounted = false;
+            authUnsubscribed = true;
+            listenerPromise.then(listener => {
+                listener?.subscription.unsubscribe();
+            });
         };
     }, []);
 
@@ -153,6 +191,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
 
             if (authError) throw authError;
+
+            // Success - auth listener will handle user state
+            // But we still set loading false after short delay
+            setTimeout(() => setIsLoading(false), 500);
         } catch (err: any) {
             console.error("Login error:", err);
             setError(err.message || "Failed to login.");

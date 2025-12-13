@@ -279,139 +279,149 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
     // Determines if viewing own profile
     const isOwner = authUser && user && authUser.id === user.id;
 
-    // --- FETCH DATA ---
-    const fetchUserData = async () => {
-        setIsLoading(true);
-        const targetUser = propUser || authUser;
-
-        if (!targetUser) {
-            setIsLoading(false);
-            return;
-        }
-
-        // Default / Fallback State
-        let finalUser: User = { ...targetUser };
-        let finalPosts: Post[] = [];
-        let finalStats = { followers: 0, following: 0 };
-        let finalIsFollowing = false;
-
-        try {
-            // 1. Fetch Profile Info
-            const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', targetUser.id)
-                .single();
-
-            if (!profileError && profileData) {
-                finalUser = {
-                    ...targetUser,
-                    name: profileData.name || targetUser.name,
-                    handle: profileData.username || targetUser.handle,
-                    bio: profileData.bio || '',
-                    avatar: profileData.avatar_url || targetUser.avatar,
-                    coverUrl: profileData.banner_url || targetUser.coverUrl
-                };
-            }
-
-            // 2. Fetch Posts OR Saved Posts depending on tab
-            let postsData: any[] = [];
-
-            try {
-                if (activeTab === 'posts') {
-                    const { data, error } = await supabase
-                        .from('posts')
-                        .select('*')
-                        .eq('user_id', targetUser.id)
-                        .order('created_at', { ascending: false });
-                    if (data) postsData = data;
-                } else if (activeTab === 'saved' && isOwner) {
-                    // Join saved_posts with posts
-                    const { data, error } = await supabase
-                        .from('saved_posts')
-                        .select('post_id, posts(*)')
-                        .eq('user_id', targetUser.id)
-                        .order('created_at', { ascending: false });
-
-                    if (data) {
-                        postsData = data.map((item: any) => item.posts).filter((p: any) => p !== null);
-                    }
-                }
-
-                if (postsData.length > 0) {
-                    // Need to check saved status for each post if we are owner
-                    let savedIds: string[] = [];
-                    if (isOwner) {
-                        const { data: saves } = await supabase.from('saved_posts').select('post_id').eq('user_id', authUser.id);
-                        if (saves) savedIds = saves.map(s => s.post_id);
-                    }
-
-                    finalPosts = postsData.map((p: any) => ({
-                        id: p.id,
-                        userId: p.user_id,
-                        caption: p.caption,
-                        contentUrl: p.content_url,
-                        type: p.type || 'image',
-                        likes: 0,
-                        comments: [],
-                        timestamp: new Date(p.created_at).toLocaleDateString(),
-                        isLiked: false,
-                        isSaved: isOwner ? savedIds.includes(p.id) : false
-                    }));
-                }
-            } catch (err) { /* Ignore post fetch errors */ }
-
-            // 3. Fetch Follow Counts
-            try {
-                const { count: followersCount } = await supabase
-                    .from('follows')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('following_id', targetUser.id);
-
-                const { count: followingCount } = await supabase
-                    .from('follows')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('follower_id', targetUser.id);
-
-                finalStats = {
-                    followers: followersCount || 0,
-                    following: followingCount || 0
-                };
-
-                // Check following status
-                if (authUser && authUser.id !== targetUser.id) {
-                    const { data: followData } = await supabase
-                        .from('follows')
-                        .select('*')
-                        .eq('follower_id', authUser.id)
-                        .eq('following_id', targetUser.id)
-                        .single();
-                    finalIsFollowing = !!followData;
-                }
-            } catch (err) { /* Ignore follow stats error */ }
-
-        } catch (error: any) {
-            if (error.code === '42P01') {
-                console.warn('DB tables missing, using local data.');
-            }
-        } finally {
-            setUser(finalUser);
-            setStats(finalStats);
-            setPosts(finalPosts);
-            setIsFollowing(finalIsFollowing);
-            setIsLoading(false);
-        }
-    };
+    // --- FETCH DATA --- (Handled in useEffect below)
 
     useEffect(() => {
-        fetchUserData();
+        let isMounted = true;
 
-        // Safeguard: Force loading to false after 10 seconds to prevent infinite loading
-        const timeoutId = setTimeout(() => {
-            setIsLoading(false);
-        }, 10000);
+        const loadData = async () => {
+            if (!isMounted) return;
 
-        return () => clearTimeout(timeoutId);
+            setIsLoading(true);
+            const targetUser = propUser || authUser;
+
+            if (!targetUser) {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+                return;
+            }
+
+            // Default / Fallback State
+            let finalUser: User = { ...targetUser };
+            let finalPosts: Post[] = [];
+            let finalStats = { followers: 0, following: 0 };
+            let finalIsFollowing = false;
+
+            try {
+                // 1. Fetch Profile Info
+                const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', targetUser.id)
+                    .single();
+
+                if (!isMounted) return;
+
+                if (!profileError && profileData) {
+                    finalUser = {
+                        ...targetUser,
+                        name: profileData.name || targetUser.name,
+                        handle: profileData.username || targetUser.handle,
+                        bio: profileData.bio || '',
+                        avatar: profileData.avatar_url || targetUser.avatar,
+                        coverUrl: profileData.banner_url || targetUser.coverUrl
+                    };
+                }
+
+                // 2. Fetch Posts OR Saved Posts depending on tab
+                let postsData: any[] = [];
+
+                try {
+                    if (activeTab === 'posts') {
+                        const { data, error } = await supabase
+                            .from('posts')
+                            .select('*')
+                            .eq('user_id', targetUser.id)
+                            .order('created_at', { ascending: false });
+                        if (data && isMounted) postsData = data;
+                    } else if (activeTab === 'saved' && isOwner) {
+                        // Join saved_posts with posts
+                        const { data, error } = await supabase
+                            .from('saved_posts')
+                            .select('post_id, posts(*)')
+                            .eq('user_id', targetUser.id)
+                            .order('created_at', { ascending: false });
+
+                        if (data && isMounted) {
+                            postsData = data.map((item: any) => item.posts).filter((p: any) => p !== null);
+                        }
+                    }
+
+                    if (postsData.length > 0 && isMounted) {
+                        // Need to check saved status for each post if we are owner
+                        let savedIds: string[] = [];
+                        if (isOwner && authUser) {
+                            const { data: saves } = await supabase.from('saved_posts').select('post_id').eq('user_id', authUser.id);
+                            if (saves) savedIds = saves.map(s => s.post_id);
+                        }
+
+                        finalPosts = postsData.map((p: any) => ({
+                            id: p.id,
+                            userId: p.user_id,
+                            caption: p.caption,
+                            contentUrl: p.content_url,
+                            type: p.type || 'image',
+                            likes: 0,
+                            comments: [],
+                            timestamp: new Date(p.created_at).toLocaleDateString(),
+                            isLiked: false,
+                            isSaved: isOwner ? savedIds.includes(p.id) : false
+                        }));
+                    }
+                } catch (err) { /* Ignore post fetch errors */ }
+
+                // 3. Fetch Follow Counts
+                try {
+                    const { count: followersCount } = await supabase
+                        .from('follows')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('following_id', targetUser.id);
+
+                    const { count: followingCount } = await supabase
+                        .from('follows')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('follower_id', targetUser.id);
+
+                    if (isMounted) {
+                        finalStats = {
+                            followers: followersCount || 0,
+                            following: followingCount || 0
+                        };
+
+                        // Check following status
+                        if (authUser && authUser.id !== targetUser.id) {
+                            const { data: followData } = await supabase
+                                .from('follows')
+                                .select('*')
+                                .eq('follower_id', authUser.id)
+                                .eq('following_id', targetUser.id)
+                                .single();
+                            finalIsFollowing = !!followData;
+                        }
+                    }
+                } catch (err) { /* Ignore follow stats error */ }
+
+            } catch (error: any) {
+                if (error.code === '42P01') {
+                    console.warn('DB tables missing, using local data.');
+                }
+            } finally {
+                if (isMounted) {
+                    setUser(finalUser);
+                    setStats(finalStats);
+                    setPosts(finalPosts);
+                    setIsFollowing(finalIsFollowing);
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        loadData();
+
+        return () => {
+            isMounted = false;
+        };
     }, [propUser, authUser, activeTab]);
 
     // --- ACTIONS ---
