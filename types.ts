@@ -195,15 +195,14 @@ export interface ExploreItem {
   creator?: User;
 }
 
-// User requested simplified Notification type
-export interface Notification {
+export type Notification = {
   id: string;
   title: string;
   message: string;
   type: 'success' | 'error' | 'info' | 'warning';
   read: boolean;
   createdAt: string;
-}
+};
 
 // --- NEW TYPES FOR HYBRID FEED ---
 
