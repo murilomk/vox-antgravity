@@ -1,28 +1,27 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-// Force rebuild
-import { Notification as AppNotification } from './types';
+import { Notification } from './types';
 
 interface NotificationContextType {
-    notifications: AppNotification[];
+    notifications: Notification[];
     unreadCount: number;
-    addNotification: (notification: AppNotification) => void;
+    addNotification: (notification: Notification) => void;
     markAsRead: (id: string) => void;
     markAllAsRead: () => void;
     deleteNotification: (id: string) => void;
     clearAll: () => void;
-    latestNotification: AppNotification | null; // For Toast
-    setLatestNotification: (n: AppNotification | null) => void;
+    latestNotification: Notification | null; // For Toast
+    setLatestNotification: (n: Notification | null) => void;
     requestPermission: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [notifications, setNotifications] = useState<AppNotification[]>([]);
-    const [latestNotification, setLatestNotification] = useState<AppNotification | null>(null);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
 
-    const unreadCount = notifications.filter(n => !n.isRead).length;
+    const unreadCount = notifications.filter(n => !n.read).length;
 
     // --- Sound Logic ---
     const playNotificationSound = () => {
@@ -56,7 +55,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (!("Notification" in window)) return;
 
         try {
-            const permission = await Notification.requestPermission();
+            const permission = await window.Notification.requestPermission();
             if (permission === 'granted') {
                 console.log('Notification permission granted.');
             }
@@ -71,7 +70,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     // --- Actions ---
 
-    const addNotification = (notification: AppNotification) => {
+    const addNotification = (notification: Notification) => {
         setNotifications(prev => [notification, ...prev]);
         setLatestNotification(notification);
 
@@ -81,20 +80,20 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             navigator.vibrate([50, 50, 50]);
         }
 
-        if (document.hidden && Notification.permission === "granted") {
-            new Notification("VoxNet", {
-                body: notification.text,
+        if (document.hidden && window.Notification.permission === "granted") {
+            new window.Notification("VoxNet", {
+                body: notification.message,
                 icon: "/icon-192.png"
             });
         }
     };
 
     const markAsRead = (id: string) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
     const markAllAsRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 
     const deleteNotification = (id: string) => {

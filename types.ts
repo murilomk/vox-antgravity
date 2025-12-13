@@ -131,7 +131,7 @@ export interface Group {
 export type EventCategory = 'Music' | 'Games' | 'Art' | 'Education' | 'Movies' | 'Networking' | 'Sports' | 'Technology';
 
 export interface EventMessage extends Message {
-    eventId: string;
+  eventId: string;
 }
 
 export interface Event {
@@ -195,34 +195,14 @@ export interface ExploreItem {
   creator?: User;
 }
 
-// --- NEW NOTIFICATION SYSTEM TYPES ---
-
-export type NotificationCategory = 'social' | 'system' | 'security' | 'friends' | 'groups' | 'live' | 'activity';
-
-export type NotificationType = 
-  | 'like' 
-  | 'comment' 
-  | 'follow' 
-  | 'mention' 
-  | 'share' 
-  | 'message' 
-  | 'group_invite' 
-  | 'live_start' 
-  | 'system_update' 
-  | 'security_alert'
-  | 'repost';
-
+// User requested simplified Notification type
 export interface Notification {
   id: string;
-  userId?: string; // The user who triggered it (optional for system)
-  type: NotificationType;
-  category: NotificationCategory;
-  text: string;
-  targetId?: string; // ID of post, comment, or group
-  previewImage?: string; // For post previews
-  timestamp: string; // ISO or relative
-  isRead: boolean;
-  actionUrl?: string;
+  title: string;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  read: boolean;
+  createdAt: string;
 }
 
 // --- NEW TYPES FOR HYBRID FEED ---
@@ -241,7 +221,7 @@ export interface ReelStripData {
 }
 
 // Union type for the main feed
-export type FeedItem = 
+export type FeedItem =
   | { type: 'post', data: Post }
   | { type: 'ai_card', data: AICardData }
   | { type: 'reel_strip', data: ReelStripData };
@@ -251,8 +231,8 @@ export enum ViewState {
   FEED = 'FEED',
   EXPLORE = 'EXPLORE',
   REELS = 'REELS',
-  MESSAGES = 'MESSAGES', 
-  GROUPS = 'GROUPS', 
+  MESSAGES = 'MESSAGES',
+  GROUPS = 'GROUPS',
   EVENTS = 'EVENTS',
   PROFILE = 'PROFILE',
   ADMIN = 'ADMIN',
@@ -262,23 +242,23 @@ export enum ViewState {
 }
 
 export interface SettingsState {
-    themeMode: 'light' | 'dark' | 'neon';
-    solarTheme: boolean;
-    emotionalTheme: boolean;
-    parallax: boolean;
-    faceId: boolean;
-    stealth: boolean;
-    intrusionDetection: boolean;
-    ghostLocation: boolean;
-    appCamouflage: boolean;
-    wellnessAwareness: boolean;
-    blueLight: boolean;
-    focusMode: boolean;
-    pushVolume: number;
-    viralContent: number;
-    closeFriends: number;
-    educational: number;
-    localEvents: number;
-    allowTraining: boolean;
-    adPersonalization: boolean;
+  themeMode: 'light' | 'dark' | 'neon';
+  solarTheme: boolean;
+  emotionalTheme: boolean;
+  parallax: boolean;
+  faceId: boolean;
+  stealth: boolean;
+  intrusionDetection: boolean;
+  ghostLocation: boolean;
+  appCamouflage: boolean;
+  wellnessAwareness: boolean;
+  blueLight: boolean;
+  focusMode: boolean;
+  pushVolume: number;
+  viralContent: number;
+  closeFriends: number;
+  educational: number;
+  localEvents: number;
+  allowTraining: boolean;
+  adPersonalization: boolean;
 }

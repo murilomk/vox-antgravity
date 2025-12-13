@@ -6,8 +6,8 @@ import { Reel, User } from '../types';
 import { useLanguage } from '../LanguageContext';
 import { useNotifications } from '../NotificationContext';
 import { useContent } from '../ContentContext';
-import CommentsModal from '../components/CommentsModal'; 
-import ShareModal from '../components/ShareModal';       
+import CommentsModal from '../components/CommentsModal';
+import ShareModal from '../components/ShareModal';
 import ActionMenu, { MenuContextType } from '../components/ActionMenu';
 
 // --- Sub-components ---
@@ -28,11 +28,11 @@ const ReelsCamera = ({ onClose }: { onClose: () => void }) => {
             <div className="flex-1 flex items-center justify-center"><p className="text-gray-500 text-sm">Camera Preview</p></div>
             <div className="pb-10 pt-4 flex flex-col items-center justify-end bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center justify-around w-full px-8">
-                     <div className="w-10 h-10 rounded-lg bg-gray-800 border-2 border-white"></div>
-                     <button className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-transform active:scale-95">
+                    <div className="w-10 h-10 rounded-lg bg-gray-800 border-2 border-white"></div>
+                    <button className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center transition-transform active:scale-95">
                         <div className="w-16 h-16 bg-red-500 rounded-full"></div>
-                     </button>
-                     <button onClick={onClose} className="w-10 h-10 flex items-center justify-center"><X className="w-8 h-8 text-white rotate-45" /></button>
+                    </button>
+                    <button onClick={onClose} className="w-10 h-10 flex items-center justify-center"><X className="w-8 h-8 text-white rotate-45" /></button>
                 </div>
             </div>
         </div>
@@ -56,7 +56,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
     const author = USERS.find(u => u.id === reel.userId) || CURRENT_USER;
     const { addNotification } = useNotifications();
     const { toggleLikeReel } = useContent();
-    
+
     // States
     const [isFollowing, setIsFollowing] = useState(false); // Simulation
     const [showHeartOverlay, setShowHeartOverlay] = useState(false);
@@ -67,7 +67,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
     // Initialize Follow State based on dummy data logic (random for demo)
     useEffect(() => {
         // In a real app, check backend. Here, we just default to false unless it's current user
-        setIsFollowing(author.id === CURRENT_USER.id); 
+        setIsFollowing(author.id === CURRENT_USER.id);
     }, [author.id]);
 
     // Handle Play/Pause & Intersection
@@ -134,18 +134,17 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
         e.stopPropagation();
         const newStatus = !isFollowing;
         setIsFollowing(newStatus);
-        
+
         if (newStatus) {
             if (navigator.vibrate) navigator.vibrate([30, 30]);
             // Trigger Notification
             addNotification({
                 id: `follow_${Date.now()}`,
-                userId: author.id,
-                type: 'follow',
-                category: 'friends',
-                text: `You started following ${author.name}`,
-                timestamp: 'Now',
-                isRead: false
+                title: 'New Following',
+                message: `You started following ${author.name}`,
+                type: 'success',
+                read: false,
+                createdAt: new Date().toISOString()
             });
         }
     };
@@ -177,9 +176,9 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
 
             {/* Big Heart Animation Layer */}
             {showHeartOverlay && (
-                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                     <Heart className="w-32 h-32 text-red-500 fill-red-500 drop-shadow-2xl animate-bounce-custom opacity-90" />
-                 </div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+                    <Heart className="w-32 h-32 text-red-500 fill-red-500 drop-shadow-2xl animate-bounce-custom opacity-90" />
+                </div>
             )}
 
             {/* Overlay Gradient */}
@@ -187,12 +186,12 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
 
             {/* Progress Bar (Top) */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20 z-40">
-                 <div className="h-full bg-white transition-all duration-100 ease-linear" style={{ width: `${progress}%` }}></div>
+                <div className="h-full bg-white transition-all duration-100 ease-linear" style={{ width: `${progress}%` }}></div>
             </div>
 
             {/* Content Layer */}
             <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pb-20 md:pb-4">
-                
+
                 {/* Top Bar */}
                 <div className="flex justify-between items-start pt-safe">
                     <h2 className="text-lg font-bold text-white drop-shadow-md">Reels</h2>
@@ -211,19 +210,19 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
                             </div>
                             <div className="flex flex-col">
                                 <div className="flex items-center space-x-2">
-                                    <span 
+                                    <span
                                         className="font-bold text-sm shadow-black drop-shadow-md cursor-pointer hover:underline"
                                         onClick={handleProfileClick}
                                     >
                                         {author?.handle}
                                     </span>
                                     {author.id !== CURRENT_USER.id && (
-                                        <button 
+                                        <button
                                             onClick={toggleFollow}
                                             className={`
                                                 border px-2 py-0.5 rounded-lg text-[10px] font-bold backdrop-blur-sm transition-all
-                                                ${isFollowing 
-                                                    ? 'border-white/50 text-white/80 bg-transparent' 
+                                                ${isFollowing
+                                                    ? 'border-white/50 text-white/80 bg-transparent'
                                                     : 'border-blue-500 bg-blue-500/80 text-white'}
                                             `}
                                         >
@@ -233,11 +232,11 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
                                 </div>
                             </div>
                         </div>
-                        
+
                         <p className="text-sm mb-3 line-clamp-2 drop-shadow-md leading-relaxed">
                             {reel.caption} <span className="font-bold cursor-pointer">...more</span>
                         </p>
-                        
+
                         <div className="flex items-center space-x-2 text-xs font-medium cursor-pointer">
                             <div className="bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-md flex items-center space-x-1 hover:bg-white/30 transition">
                                 <Music2 className="w-3 h-3" />
@@ -252,7 +251,7 @@ const ReelItem: React.FC<ReelItemProps> = ({ reel, isActive, isMuted, toggleMute
                             <button onClick={toggleLike} className="transition-transform active:scale-75 p-2">
                                 <Heart className={`w-8 h-8 ${reel.isLiked ? 'fill-red-500 text-red-500' : 'text-white'}`} strokeWidth={2} />
                             </button>
-                            <span className="text-xs font-bold text-white drop-shadow-md">{reel.likes > 1000 ? (reel.likes/1000).toFixed(1) + 'k' : reel.likes}</span>
+                            <span className="text-xs font-bold text-white drop-shadow-md">{reel.likes > 1000 ? (reel.likes / 1000).toFixed(1) + 'k' : reel.likes}</span>
                         </div>
 
                         <div className="flex flex-col items-center space-y-1">
@@ -302,11 +301,11 @@ const Reels: React.FC<ReelsProps> = ({ onUserClick }) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [isMuted, setIsMuted] = useState(false); // Default unmuted for better UX
     const [showCamera, setShowCamera] = useState(false);
-    
+
     // Modal States
     const [activeCommentReel, setActiveCommentReel] = useState<Reel | null>(null);
     const [activeShareReel, setActiveShareReel] = useState<Reel | null>(null);
-    
+
     // Menu State
     const [menuState, setMenuState] = useState<{
         isOpen: boolean;
@@ -350,9 +349,9 @@ const Reels: React.FC<ReelsProps> = ({ onUserClick }) => {
     return (
         <div className="relative h-full w-full bg-black">
             {showCamera && <ReelsCamera onClose={() => setShowCamera(false)} />}
-            
+
             {/* Camera Trigger */}
-            <button 
+            <button
                 onClick={() => setShowCamera(true)}
                 className="absolute top-4 right-4 z-40 p-2 bg-white/10 rounded-full backdrop-blur-md md:right-8 md:top-8 hover:bg-white/20 transition"
             >
@@ -360,15 +359,15 @@ const Reels: React.FC<ReelsProps> = ({ onUserClick }) => {
             </button>
 
             {/* Main Scroll Container */}
-            <div 
+            <div
                 ref={containerRef}
                 className="h-full w-full overflow-y-scroll snap-y snap-mandatory no-scrollbar scroll-smooth"
             >
                 {reels.map((reel, index) => (
                     <div key={reel.id} className="h-full w-full snap-start" data-index={index}>
-                         <ReelItem 
-                            reel={reel} 
-                            isActive={activeIndex === index} 
+                        <ReelItem
+                            reel={reel}
+                            isActive={activeIndex === index}
                             isMuted={isMuted}
                             toggleMute={toggleMute}
                             onCommentClick={setActiveCommentReel}
@@ -383,21 +382,21 @@ const Reels: React.FC<ReelsProps> = ({ onUserClick }) => {
 
             {/* Reusable Modals */}
             {activeCommentReel && (
-                <CommentsModal 
-                    post={activeCommentReel} 
-                    onClose={() => setActiveCommentReel(null)} 
+                <CommentsModal
+                    post={activeCommentReel}
+                    onClose={() => setActiveCommentReel(null)}
                 />
             )}
 
             {activeShareReel && (
-                <ShareModal 
-                    post={activeShareReel} 
-                    onClose={() => setActiveShareReel(null)} 
+                <ShareModal
+                    post={activeShareReel}
+                    onClose={() => setActiveShareReel(null)}
                 />
             )}
 
             {/* The Three Dots Menu */}
-            <ActionMenu 
+            <ActionMenu
                 isOpen={menuState.isOpen}
                 onClose={() => setMenuState({ isOpen: false, reel: null })}
                 type="reel"
