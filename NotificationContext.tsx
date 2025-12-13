@@ -1,25 +1,25 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import { Notification } from './types';
+import { Notification as AppNotification } from './types';
 
 interface NotificationContextType {
-    notifications: Notification[];
+    notifications: AppNotification[];
     unreadCount: number;
-    addNotification: (notification: Notification) => void;
+    addNotification: (notification: AppNotification) => void;
     markAsRead: (id: string) => void;
     markAllAsRead: () => void;
     deleteNotification: (id: string) => void;
     clearAll: () => void;
-    latestNotification: Notification | null; // For Toast
-    setLatestNotification: (n: Notification | null) => void;
+    latestNotification: AppNotification | null; // For Toast
+    setLatestNotification: (n: AppNotification | null) => void;
     requestPermission: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
+    const [notifications, setNotifications] = useState<AppNotification[]>([]);
+    const [latestNotification, setLatestNotification] = useState<AppNotification | null>(null);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -28,7 +28,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         try {
             const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
             if (!AudioContext) return;
-            
+
             const ctx = new AudioContext();
             const oscillator = ctx.createOscillator();
             const gainNode = ctx.createGain();
@@ -53,7 +53,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     // --- Permission Logic (Android/Web) ---
     const requestPermission = async () => {
         if (!("Notification" in window)) return;
-        
+
         try {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
@@ -70,10 +70,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     // --- Actions ---
 
-    const addNotification = (notification: Notification) => {
+    const addNotification = (notification: AppNotification) => {
         setNotifications(prev => [notification, ...prev]);
         setLatestNotification(notification);
-        
+
         playNotificationSound();
 
         if (navigator.vibrate) {
@@ -83,7 +83,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (document.hidden && Notification.permission === "granted") {
             new Notification("VoxNet", {
                 body: notification.text,
-                icon: "/icon-192.png" 
+                icon: "/icon-192.png"
             });
         }
     };
