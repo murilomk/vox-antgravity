@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 } else if (isTableMissing) {
                     console.warn("Supabase 'profiles' table not found. Using local fallback profile.");
                 }
-                
+
                 // Fallback: If profile doesn't exist (table missing or trigger failed), 
                 // return a generated profile so the app remains usable.
                 if (userId) {
@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const login = async (email: string, pass: string) => {
         setIsLoading(true);
         setError(null);
-        
+
         try {
             const { data, error: authError } = await supabase.auth.signInWithPassword({
                 email,
@@ -159,7 +159,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         try {
             const handle = '@' + name.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
-            
+
             const { data, error: authError } = await supabase.auth.signUp({
                 email,
                 password: pass,
@@ -173,8 +173,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
 
             if (authError) throw authError;
+
+            // Registration successful - the auth state listener will handle the rest
         } catch (err: any) {
             setError(err.message || "Registration failed.");
+        } finally {
             setIsLoading(false);
         }
     };

@@ -1,14 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-
-type Notification = {
-    id: string;
-    title: string;
-    message: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-    read: boolean;
-    createdAt: string;
-};
+import type { Notification } from './types';
 
 interface NotificationContextType {
     notifications: Notification[];
