@@ -54,13 +54,24 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                 const cleanQuery = searchQuery.replace('@', '').trim();
                 lastQueryRef.current = cleanQuery;
 
-                // 1. Search Profiles
-                const { data: foundUsers, error } = await supabase
-                    .from('profiles')
-                    .select('id, username, name, avatar_url, bio, is_verified')
-                    .or(`username.ilike.%${cleanQuery}%,name.ilike.%${cleanQuery}%`)
-                    .neq('id', currentUser.id) // Exclude self
-                    .limit(20);
+                // 1. Search Profiles (use tolerant select and fallbacks)
+                let foundUsers: any[] | null = null;
+                let error: any = null;
+
+                try {
+                    const res = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .or(`username.ilike.%${cleanQuery}%,name.ilike.%${cleanQuery}%`)
+                        .neq('id', currentUser.id)
+                        .limit(20);
+                    foundUsers = res.data as any[] | null;
+                    error = res.error;
+                } catch (e) {
+                    // sometimes .or with missing columns can throw — capture and continue to fallback
+                    console.debug('[AddFriends] primary search threw, falling back', e?.message || e);
+                    error = e;
+                }
 
                 if (error) {
                     // Check for table missing
@@ -69,42 +80,67 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                         setSearchResults([]);
                         return;
                     }
-                    throw error;
+
+                    // If error is about unknown column in .or() we fall back to a safer search below
+                    console.debug('[AddFriends] search error, will attempt fallback queries', error?.message || error);
                 }
 
+                // If primary search returned nothing (or errored), try safer fallbacks
                 if (!foundUsers || foundUsers.length === 0) {
-                    // ensure latest
-                    if (lastQueryRef.current === cleanQuery) setSearchResults([]);
-                    setIsSearching(false);
-                    return;
+                    try {
+                        // Try searching by name only
+                        const fallback = await supabase
+                            .from('profiles')
+                            .select('*')
+                            .ilike('name', `%${cleanQuery}%`)
+                            .neq('id', currentUser.id)
+                            .limit(20);
+
+                        if (fallback.error) throw fallback.error;
+                        foundUsers = fallback.data as any[] | null;
+                    } catch (e) {
+                        // last resort: try searching handle/username without .or
+                        try {
+                            const fb2 = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .ilike('username', `%${cleanQuery}%`)
+                                .neq('id', currentUser.id)
+                                .limit(20);
+                            if (!fb2.error) foundUsers = fb2.data as any[] | null;
+                        } catch (err2) {
+                            console.debug('[AddFriends] fallback searches failed', err2?.message || err2);
+                            foundUsers = [];
+                        }
+                    }
                 }
 
-                // 2. Check Follow Status for these users
-                // Wrap in try/catch to ignore if 'follows' table is missing
+                // 2. Check Follow Status for these users (don't rely on stale followingState)
                 try {
-                    const foundIds = foundUsers.map(u => u.id);
+                    const foundIds = (foundUsers || []).map(u => u.id);
                     const { data: follows } = await supabase
                         .from('follows')
                         .select('following_id')
                         .eq('follower_id', currentUser.id)
-                        .in('following_id', foundIds);
+                        .in('following_id', foundIds || []);
 
-                    // Update Follow State Map
-                    const newFollowState: Record<string, boolean> = { ...followingState };
-                    foundUsers.forEach(u => {
-                        newFollowState[u.id] = follows?.some(f => f.following_id === u.id) || false;
+                    const newFollowState: Record<string, boolean> = {};
+                    (foundUsers || []).forEach(u => {
+                        newFollowState[u.id] = !!follows?.some((f: any) => f.following_id === u.id);
                     });
                     setFollowingState(newFollowState);
-                } catch (e) { /* Ignore follow check failure */ }
+                } catch (e) {
+                    console.debug('[AddFriends] follow check failed', e?.message || e);
+                }
 
-                // Map to User Type
-                    const mappedUsers: User[] = foundUsers.map((u: any) => ({
+                // Map to User Type (tolerant to different column names)
+                const mappedUsers: User[] = (foundUsers || []).map((u: any) => ({
                     id: u.id,
-                    name: u.name || 'Unknown',
-                    handle: u.username ? `@${u.username}` : '@unknown',
-                    avatar: u.avatar_url || 'https://via.placeholder.com/150',
-                    bio: u.bio || '',
-                    isVerified: u.is_verified || false
+                    name: u.name || u.full_name || u.display_name || 'Unknown',
+                    handle: u.username ? `@${u.username}` : (u.handle ? `@${u.handle.replace(/^@/, '')}` : (u.email ? `@${u.email.split('@')[0]}` : '@unknown')),
+                    avatar: u.avatar_url || u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`,
+                    bio: u.bio || u.description || '' ,
+                    isVerified: u.is_verified || u.isVerified || false
                 }));
 
                 // Only set results if query didn't change meanwhile
