@@ -266,7 +266,7 @@ const ProfileShareSheet = ({ user, onClose, onNavigate }: { user: User, onClose:
 
 const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }> = ({ user: propUser, onNavigate }) => {
     // --- STATE ---
-    const { user: authUser, refreshProfile } = useAuth();
+    const { user: authUser, refreshProfile, isLoading: authLoading } = useAuth();
     const [user, setUser] = useState<User | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -291,7 +291,8 @@ const Profile: React.FC<{ user?: User, onNavigate?: (view: ViewState) => void }>
             const targetUser = propUser || authUser;
 
             if (!targetUser) {
-                if (isMounted) {
+                // If auth is still initializing, wait until it finishes. Only stop loading when auth finished and there's truly no user.
+                if (isMounted && !authLoading) {
                     setIsLoading(false);
                 }
                 return;

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, X, UserPlus, Users, Share2, Smartphone, QrCode, Sparkles, UserMinus, Link as LinkIcon, Facebook, Twitter, Send as SendIcon, Loader2, AlertCircle, Check, MessageSquare, Mail } from 'lucide-react';
 import { User, ViewState } from '../types';
 import { useChat } from '../ChatContext';
@@ -21,6 +21,8 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [recommendedUsers, setRecommendedUsers] = useState<User[]>([]);
     const [followingState, setFollowingState] = useState<Record<string, boolean>>({});
+    const [followingPending, setFollowingPending] = useState<Record<string, boolean>>({});
+    const lastQueryRef = useRef('');
     
     // Feature States
     const [showScanner, setShowScanner] = useState(false);
@@ -49,7 +51,8 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
 
             try {
                 // Clean query (remove @ if present)
-                const cleanQuery = searchQuery.replace('@', '');
+                const cleanQuery = searchQuery.replace('@', '').trim();
+                lastQueryRef.current = cleanQuery;
 
                 // 1. Search Profiles
                 const { data: foundUsers, error } = await supabase
@@ -70,7 +73,8 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                 }
 
                 if (!foundUsers || foundUsers.length === 0) {
-                    setSearchResults([]);
+                    // ensure latest
+                    if (lastQueryRef.current === cleanQuery) setSearchResults([]);
                     setIsSearching(false);
                     return;
                 }
@@ -94,7 +98,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                 } catch (e) { /* Ignore follow check failure */ }
 
                 // Map to User Type
-                const mappedUsers: User[] = foundUsers.map((u: any) => ({
+                    const mappedUsers: User[] = foundUsers.map((u: any) => ({
                     id: u.id,
                     name: u.name || 'Unknown',
                     handle: u.username ? `@${u.username}` : '@unknown',
@@ -103,7 +107,10 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                     isVerified: u.is_verified || false
                 }));
 
-                setSearchResults(mappedUsers);
+                // Only set results if query didn't change meanwhile
+                if (lastQueryRef.current === cleanQuery) {
+                    setSearchResults(mappedUsers);
+                }
 
             } catch (err: any) {
                 console.error("Search error:", err);
@@ -155,11 +162,12 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
     const handleFollowAction = async (targetUser: User, e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!currentUser) return;
-
         const isFollowing = followingState[targetUser.id];
-        
+        if (followingPending[targetUser.id]) return; // already in-flight
+
         // Optimistic Update
         setFollowingState(prev => ({ ...prev, [targetUser.id]: !isFollowing }));
+        setFollowingPending(prev => ({ ...prev, [targetUser.id]: true }));
 
         try {
             if (isFollowing) {
@@ -168,7 +176,7 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                     .from('follows')
                     .delete()
                     .match({ follower_id: currentUser.id, following_id: targetUser.id });
-                
+
                 if (error) throw error;
                 showToast(`Unfollowed ${targetUser.name}`);
             } else {
@@ -180,11 +188,13 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                 if (error) throw error;
                 showToast(`Following ${targetUser.name}`);
             }
-        } catch (err) {
-            console.error("Follow action failed:", err);
+        } catch (err: any) {
+            console.error('Follow action failed:', err);
             // Revert optimistic update
             setFollowingState(prev => ({ ...prev, [targetUser.id]: isFollowing }));
-            showToast("Action failed. Check connection.");
+            showToast(err?.message ? String(err.message) : 'Action failed. Check connection.');
+        } finally {
+            setFollowingPending(prev => ({ ...prev, [targetUser.id]: false }));
         }
     };
 
@@ -260,9 +270,10 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                     <p className="text-xs text-gray-500 mb-3 truncate w-full">{user.handle}</p>
                     <button 
                         onClick={(e) => handleFollowAction(user, e)}
-                        className={`w-full py-1.5 rounded-lg text-xs font-bold transition ${!isFollowing ? 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400' : 'bg-gray-100 text-gray-400 dark:bg-white/5'}`}
+                        disabled={!!followingPending[user.id]}
+                        className={`w-full py-1.5 rounded-lg text-xs font-bold transition ${!!followingPending[user.id] ? 'opacity-60 cursor-wait' : (!isFollowing ? 'bg-primary-50 text-primary-600 hover:bg-primary-100 dark:bg-primary-500/10 dark:text-primary-400' : 'bg-gray-100 text-gray-400 dark:bg-white/5')}`}
                     >
-                        {isFollowing ? 'Following' : 'Follow'}
+                        {followingPending[user.id] ? '...' : (isFollowing ? 'Following' : 'Follow')}
                     </button>
                 </div>
             )
@@ -283,14 +294,15 @@ const AddFriends: React.FC<AddFriendsProps> = ({ onNavigate }) => {
                 </div>
                 <button 
                     onClick={(e) => handleFollowAction(user, e)}
+                    disabled={!!followingPending[user.id]}
                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                        !isFollowing 
+                        !!followingPending[user.id] ? 'opacity-60 cursor-wait' : (!isFollowing 
                         ? 'bg-primary-600 text-white hover:bg-primary-700 shadow-md shadow-primary-500/20' 
-                        : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300'
+                        : 'bg-gray-100 text-gray-500 dark:bg-white/10 dark:text-gray-300')
                     }`}
                 >
-                    {!isFollowing && <UserPlus className="w-4 h-4 mr-1" />}
-                    <span>{isFollowing ? 'Following' : 'Follow'}</span>
+                    {followingPending[user.id] ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : (!isFollowing && <UserPlus className="w-4 h-4 mr-1" />)}
+                    <span>{followingPending[user.id] ? '...' : (isFollowing ? 'Following' : 'Follow')}</span>
                 </button>
             </div>
         );

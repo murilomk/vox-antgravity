@@ -10,7 +10,7 @@ import { useAuth } from '../AuthContext';
 type AuthMode = 'LOGIN' | 'REGISTER' | 'FORGOT';
 
 const Auth: React.FC = () => {
-    const { login, register, loginWithGoogle, loginWithFacebook, forgotPassword, isLoading, error, clearError } = useAuth();
+    const { login, register, loginWithGoogle, loginWithFacebook, forgotPassword, isLoading, error, clearError, isAuthenticated } = useAuth();
     const [mode, setMode] = useState<AuthMode>('LOGIN');
     
     // Form State
@@ -90,6 +90,17 @@ const Auth: React.FC = () => {
             setTimeout(() => setMode('LOGIN'), 5000);
         }
     };
+
+    // Redirect after successful login
+    useEffect(() => {
+        if (isAuthenticated && !isLoading) {
+            try {
+                window.location.href = '/';
+            } catch (e) {
+                // fallback: do nothing
+            }
+        }
+    }, [isAuthenticated, isLoading]);
 
     // --- Google / Facebook Icons (Inline SVG for quality) ---
     const GoogleIcon = () => (
