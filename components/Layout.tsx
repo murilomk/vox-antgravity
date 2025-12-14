@@ -14,6 +14,7 @@ import {
   Bell,
   Film,
   UserPlus
+  ,RefreshCw
 } from 'lucide-react';
 import { APP_NAME } from '../constants';
 import { useLanguage } from '../LanguageContext';
@@ -141,6 +142,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, cu
 
           <NavItem view={ViewState.PROFILE} icon={UserIcon} label={t.nav.profile} />
           <NavItem view={ViewState.SETTINGS} icon={Settings} label={t.nav.settings} />
+          <NavItem view={ViewState.UPDATE} icon={RefreshCw} label={"Atualizações"} />
           
           <div className="pt-8 mt-8 border-t border-gray-100 dark:border-neutral-800">
              <NavItem view={ViewState.ADMIN} icon={ShieldAlert} label={t.nav.moderation} />
@@ -171,6 +173,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, cu
                     <button onClick={() => onChangeView(ViewState.ADD_FRIENDS)}>
                         <UserPlus className="w-6 h-6 text-gray-700 dark:text-gray-300" />
                     </button>
+                  <button onClick={() => onChangeView(ViewState.UPDATE)}>
+                    <RefreshCw className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+                  </button>
                     
                     <button className="relative" onClick={() => onChangeView(ViewState.NOTIFICATIONS)}>
                         <Bell className={`w-6 h-6 ${currentView === ViewState.NOTIFICATIONS ? 'text-primary-600 fill-primary-100' : 'text-gray-700 dark:text-gray-300'}`} />
