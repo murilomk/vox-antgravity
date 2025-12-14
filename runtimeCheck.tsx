@@ -54,15 +54,50 @@ const RuntimeCheck: React.FC = () => {
   const bg = status === 'ok' ? 'bg-emerald-600' : status === 'missing' ? 'bg-yellow-600' : status === 'error' ? 'bg-red-600' : 'bg-slate-500';
 
   return (
-    <div aria-hidden style={{position: 'fixed', right: 12, top: 12, zIndex: 9999}}>
-      <div className={`${bg} text-white text-xs font-medium px-3 py-1 rounded-md shadow-lg flex items-center space-x-2`}>
-        <span>{status === 'ok' ? 'Supabase: OK' : status === 'missing' ? 'Supabase: Missing' : status === 'error' ? 'Supabase: Error' : 'Supabase: Checking'}</span>
-        <span className="opacity-80">•</span>
-        <span className="opacity-90">{message}</span>
-        <span className="opacity-60 ml-2">{maskedKey}</span>
+    <>
+      {/* Desktop / large screens: small top-right banner */}
+      <div aria-hidden className="hidden md:block" style={{position: 'fixed', right: 12, top: 12, zIndex: 9999}}>
+        <div className={`${bg} text-white text-xs font-medium px-3 py-1 rounded-md shadow-lg flex items-center space-x-2`}>
+          <span>{status === 'ok' ? 'Supabase: OK' : status === 'missing' ? 'Supabase: Missing' : status === 'error' ? 'Supabase: Error' : 'Supabase: Checking'}</span>
+          <span className="opacity-80">•</span>
+          <span className="opacity-90">{message}</span>
+          <span className="opacity-60 ml-2">{maskedKey}</span>
+        </div>
       </div>
-    </div>
+
+      {/* Mobile: prominent bottom banner with dismiss */}
+      <MobileBanner status={status} message={message} maskedKey={maskedKey} />
+    </>
   );
 };
 
 export default RuntimeCheck;
+
+const MobileBanner: React.FC<{status: Status; message: string; maskedKey: string}> = ({ status, message, maskedKey }) => {
+  const [visible, setVisible] = React.useState(true);
+
+  // Auto-hide after 6 seconds to avoid blocking UX (still shows in console)
+  React.useEffect(() => {
+    const t = setTimeout(() => setVisible(false), 6000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (!visible) return null;
+
+  const bg = status === 'ok' ? 'bg-emerald-600' : status === 'missing' ? 'bg-yellow-600' : status === 'error' ? 'bg-red-600' : 'bg-slate-500';
+
+  return (
+    <div className={`md:hidden fixed left-1/2 transform -translate-x-1/2 bottom-4 z-50 w-[calc(100%-32px)] max-w-md`}>
+      <div className={`${bg} text-white text-sm font-semibold px-4 py-3 rounded-lg shadow-lg flex items-center justify-between`}>
+        <div className="flex items-center space-x-3">
+          <div className="text-sm">{status === 'ok' ? 'Supabase connected' : status === 'missing' ? 'Supabase missing' : status === 'error' ? 'Supabase error' : 'Checking...'}</div>
+          <div className="text-xs opacity-80">{message}</div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className="text-xs opacity-60">{maskedKey}</div>
+          <button aria-label="close banner" onClick={() => setVisible(false)} className="text-white opacity-90 hover:opacity-100 text-sm px-2 py-1">✕</button>
+        </div>
+      </div>
+    </div>
+  );
+};
