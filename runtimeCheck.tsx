@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
 const mask = (s?: string) => {
@@ -7,36 +7,62 @@ const mask = (s?: string) => {
   return `${s.slice(0,6)}...${s.slice(-4)}`;
 };
 
+type Status = 'pending' | 'ok' | 'missing' | 'error';
+
 const RuntimeCheck: React.FC = () => {
+  const [status, setStatus] = useState<Status>('pending');
+  const [message, setMessage] = useState<string>('Checking...');
+  const [maskedKey, setMaskedKey] = useState<string>('');
+
   useEffect(() => {
     const url = (import.meta.env.VITE_SUPABASE_URL as string) || undefined;
     const key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || undefined;
 
-    // Log masked values so it's visible in browser console without exposing secrets
+    setMaskedKey(key ? mask(key) : 'MISSING');
+
     console.info('[RuntimeCheck] VITE_SUPABASE_URL:', url ?? 'MISSING');
     console.info('[RuntimeCheck] VITE_SUPABASE_ANON_KEY:', key ? mask(key) : 'MISSING');
 
     if (!url || !key) {
+      setStatus('missing');
+      setMessage('Missing Supabase env vars');
       console.warn('[RuntimeCheck] Supabase environment variables are not set. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel.');
       return;
     }
 
-    // Lightweight test: try a harmless read from `profiles` to validate anon key works.
     (async () => {
       try {
         const { data, error } = await supabase.from('profiles').select('id').limit(1);
         if (error) {
+          setStatus('error');
+          setMessage('Supabase read failed');
           console.error('[RuntimeCheck] Supabase test read failed:', error);
         } else {
+          setStatus('ok');
+          setMessage(`OK (${Array.isArray(data) ? data.length : 0})`);
           console.info('[RuntimeCheck] Supabase test read OK (profiles returned):', Array.isArray(data) ? data.length : data);
         }
       } catch (err) {
+        setStatus('error');
+        setMessage('Supabase exception');
         console.error('[RuntimeCheck] Supabase test threw an exception:', err);
       }
     })();
   }, []);
 
-  return null;
+  // Small banner UI
+  const bg = status === 'ok' ? 'bg-emerald-600' : status === 'missing' ? 'bg-yellow-600' : status === 'error' ? 'bg-red-600' : 'bg-slate-500';
+
+  return (
+    <div aria-hidden style={{position: 'fixed', right: 12, top: 12, zIndex: 9999}}>
+      <div className={`${bg} text-white text-xs font-medium px-3 py-1 rounded-md shadow-lg flex items-center space-x-2`}>
+        <span>{status === 'ok' ? 'Supabase: OK' : status === 'missing' ? 'Supabase: Missing' : status === 'error' ? 'Supabase: Error' : 'Supabase: Checking'}</span>
+        <span className="opacity-80">•</span>
+        <span className="opacity-90">{message}</span>
+        <span className="opacity-60 ml-2">{maskedKey}</span>
+      </div>
+    </div>
+  );
 };
 
 export default RuntimeCheck;
