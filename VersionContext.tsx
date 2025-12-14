@@ -30,6 +30,7 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const j = await res.json();
         const rv = String(j?.version || j?.v || '');
         setRemoteVersion(rv);
+        // Compare with the current localVersion state
         setHasUpdate(rv && rv !== (localVersion || '') ? true : false);
       } catch (e) {
         // silent fail
@@ -37,6 +38,13 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     loadRemote();
+
+    // Periodic check every 10 minutes (600000 ms)
+    const interval = setInterval(() => {
+      loadRemote();
+    }, 10 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, [localVersion]);
 
   return (
