@@ -441,11 +441,30 @@ export const Settings: React.FC<SettingsProps> = ({ settings, updateSetting }) =
                      </div>
                      <select
                         value={String(settings.updateCheckInterval ?? 10)}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                             const v = parseInt(e.target.value || '10', 10);
                             updateSetting('updateCheckInterval', v);
                             try { localStorage.setItem('vox_update_check_minutes', String(v)); } catch {}
-                            showToast('Frequência atualizada');
+                            // Persist in backend profiles.update_check_interval when user is logged in
+                            if (user?.id) {
+                                try {
+                                    const { error } = await supabase
+                                        .from('profiles')
+                                        .update({ update_check_interval: v })
+                                        .eq('id', user.id);
+                                    if (error) {
+                                        console.warn('Failed to persist update interval to profile', error.message || error);
+                                        showToast('Atualizado localmente, falha ao salvar no servidor');
+                                    } else {
+                                        showToast('Frequência atualizada');
+                                    }
+                                } catch (err) {
+                                    console.warn('Persist update interval error', err);
+                                    showToast('Atualizado localmente, falha na comunicação');
+                                }
+                            } else {
+                                showToast('Frequência atualizada');
+                            }
                         }}
                         className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2"
                      >
