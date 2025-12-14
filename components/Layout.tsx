@@ -19,6 +19,7 @@ import {
 import { APP_NAME } from '../constants';
 import { useLanguage } from '../LanguageContext';
 import { useNotifications } from '../NotificationContext';
+import { useVersion } from '../VersionContext';
 import { USERS } from '../constants';
 
 interface LayoutProps {
@@ -77,6 +78,7 @@ const NotificationToast = () => {
 const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, currentUser }) => {
   const { t } = useLanguage();
   const { unreadCount } = useNotifications();
+  const { hasUpdate } = useVersion();
   
   const NavItem = ({ view, icon: Icon, label }: { view: ViewState, icon: any, label: string }) => {
     const isActive = currentView === view;
@@ -91,6 +93,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeView, cu
       >
         <div className="relative">
             <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+          {view === ViewState.UPDATE && hasUpdate && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-black animate-pulse"></span>
+          )}
             {/* Specific badge logic for nav items if needed */}
         </div>
         <span className="hidden lg:block text-sm">{label}</span>

@@ -13,6 +13,7 @@ import { EventProvider } from './EventContext';
 import { ContentProvider } from './ContentContext';
 import { Loader2 } from 'lucide-react';
 import RuntimeCheck from './runtimeCheck';
+import { VersionProvider } from './VersionContext';
 
 // Lazy Load Views for Performance Optimization
 const Feed = lazy(() => import('./views/Feed'));
@@ -148,22 +149,24 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-                <RuntimeCheck />
-        <LanguageProvider>
-        <ChatProvider>
-            <NotificationProvider>
-            <GroupProvider>
-            <EventProvider>
-            <ContentProvider>
-                <AppContent />
-            </ContentProvider>
-            </EventProvider>
-            </GroupProvider>
-            </NotificationProvider>
-        </ChatProvider>
-        </LanguageProvider>
-    </AuthProvider>
+        <AuthProvider>
+            <RuntimeCheck />
+            <VersionProvider>
+                <LanguageProvider>
+                    <ChatProvider>
+                        <NotificationProvider>
+                        <GroupProvider>
+                        <EventProvider>
+                        <ContentProvider>
+                                <AppContent />
+                        </ContentProvider>
+                        </EventProvider>
+                        </GroupProvider>
+                        </NotificationProvider>
+                </ChatProvider>
+                </LanguageProvider>
+            </VersionProvider>
+        </AuthProvider>
   );
 };
 
