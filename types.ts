@@ -241,4 +241,5 @@ export interface SettingsState {
   localEvents?: number;
   allowTraining?: boolean;
   adPersonalization?: boolean;
+  updateCheckInterval?: number; // minutes, 0 = disabled
 }

@@ -39,12 +39,38 @@ export const VersionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     loadRemote();
 
-    // Periodic check every 10 minutes (600000 ms)
-    const interval = setInterval(() => {
-      loadRemote();
-    }, 10 * 60 * 1000);
+    // Determine interval from localStorage (minutes). Default 10 minutes. 0 = disabled
+    const getIntervalMs = () => {
+      try {
+        const v = parseInt(localStorage.getItem('vox_update_check_minutes') || '10', 10);
+        if (Number.isNaN(v) || v <= 0) return null;
+        return v * 60 * 1000;
+      } catch { return 10 * 60 * 1000; }
+    };
 
-    return () => clearInterval(interval);
+    let intervalId: any = null;
+    const startInterval = () => {
+      const ms = getIntervalMs();
+      if (ms) {
+        intervalId = setInterval(() => loadRemote(), ms);
+      }
+    };
+
+    startInterval();
+
+    // Listen to storage changes (so changing settings in another tab updates this)
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'vox_update_check_minutes') {
+        if (intervalId) clearInterval(intervalId);
+        startInterval();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      window.removeEventListener('storage', onStorage);
+    };
   }, [localVersion]);
 
   return (

@@ -431,6 +431,33 @@ export const Settings: React.FC<SettingsProps> = ({ settings, updateSetting }) =
                      Export My Persona
                  </button>
            </GlassCard>
+
+           <GlassCard className="p-5 mt-4 space-y-4">
+                 <h3 className="text-xs font-bold uppercase text-gray-500">Atualizações</h3>
+                 <div className="flex items-center justify-between">
+                     <div>
+                         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Frequência de verificação</p>
+                         <p className="text-xs text-gray-400">Escolha a frequência de checagem de atualizações (minutos). 0 = desativado.</p>
+                     </div>
+                     <select
+                        value={String(settings.updateCheckInterval ?? 10)}
+                        onChange={(e) => {
+                            const v = parseInt(e.target.value || '10', 10);
+                            updateSetting('updateCheckInterval', v);
+                            try { localStorage.setItem('vox_update_check_minutes', String(v)); } catch {}
+                            showToast('Frequência atualizada');
+                        }}
+                        className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2"
+                     >
+                        <option value="0">Desativado</option>
+                        <option value="1">1 minuto</option>
+                        <option value="5">5 minutos</option>
+                        <option value="10">10 minutos (padrão)</option>
+                        <option value="30">30 minutos</option>
+                        <option value="60">1 hora</option>
+                     </select>
+                 </div>
+           </GlassCard>
       </div>
   );
 
